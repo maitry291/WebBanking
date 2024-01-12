@@ -117,6 +117,11 @@ function updateUI(currAcc) {
   calcDisplaySummary(currAcc);
 }
 
+function logOutUser() {
+  containerApp.style.opacity = 0;
+  labelWelcome.textContent = `Log in to get started`;
+}
+
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault(); //prevents form from submitting
   const userName = inputLoginUsername.value;
@@ -164,6 +169,25 @@ btnTransfer.addEventListener('click', function (e) {
     updateUI(currAcc);
   } else {
     console.log(`enter correct amount`);
+  }
+});
+
+//close account feature
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+  if (
+    inputCloseUsername?.value === currAcc.userName &&
+    Number(inputClosePin?.value) === currAcc.pin
+  ) {
+    //perform deletion from accounts array
+    const removeIdx = accounts.findIndex(
+      acc => acc.userName === currAcc.userName
+    );
+    console.log(removeIdx);
+    // accounts.splice(removeIdx, 1);
+    //log out user
+    inputCloseUsername.value = inputClosePin.value = ``;
+    logOutUser();
   }
 });
 
