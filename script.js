@@ -88,13 +88,9 @@ const displayMovements = function (movementsArr) {
   });
 };
 
-// console.log(account2);
-
-// const withdrawals = account1.movements.filter(mov => mov < 0);
-// console.log(withdrawals);
-
-const calcBalance = function (movements) {
-  const balance = movements.reduce((accum, curr) => accum + curr, 0);
+const calcBalance = function (acc) {
+  const balance = acc.movements.reduce((accum, curr) => accum + curr, 0);
+  acc.balance = balance;
   labelBalance.textContent = `Rs. ${balance}`;
 };
 
@@ -115,6 +111,12 @@ const calcDisplaySummary = function (account) {
   labelSumInterest.textContent = `Rs. ${interest}`;
 };
 
+function updateUI(currAcc) {
+  displayMovements(currAcc.movements);
+  calcBalance(currAcc);
+  calcDisplaySummary(currAcc);
+}
+
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault(); //prevents form from submitting
   const userName = inputLoginUsername.value;
@@ -130,20 +132,40 @@ btnLogin.addEventListener('click', function (e) {
     //dsiplay UI and welcome message
     labelWelcome.textContent = `Welcome back, ${currAcc.owner.split(' ')[0]}`;
     //display app container
-    containerApp.style.opacity = 100;
-    displayMovements(currAcc.movements);
-    calcBalance(currAcc.movements);
-    calcDisplaySummary(currAcc);
+    containerApp.style.opacity = 1;
+    updateUI(currAcc);
   } else {
     //login failed --wrong pin entered
     console.log(`wrong pin`);
   }
 });
-// console.log(userName);
 
 //transfer money feature
-
-
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const toAccount = accounts.find(
+    acc => acc.userName === inputTransferTo.value
+  );
+  //clear input fields
+  inputTransferAmount.value = inputTransferTo.value = '';
+  inputTransferAmount.blur();
+  // amount;
+  if (
+    amount > 0 &&
+    toAccount &&
+    amount <= currAcc.balance &&
+    toAccount?.userName !== currAcc.userName
+  ) {
+    console.log(`transfer valid`);
+    //now debit amount from currAcc and deposit in toAcc
+    currAcc.movements.push(0 - amount);
+    toAccount.movements.push(amount);
+    updateUI(currAcc);
+  } else {
+    console.log(`enter correct amount`);
+  }
+});
 
 // const rupeeToUSD = 82.91;
 // const totalDepositsUsd = function (movements) {
@@ -195,5 +217,4 @@ console.log(arr); //not changed
 console.log(arr.at(0));
 //negative index allowed same as working in slice method
 console.log(arr.at(-1)); //prints last element
-
 */
