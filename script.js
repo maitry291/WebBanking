@@ -74,10 +74,14 @@ const createUserNames = function (accounts) {
 
 createUserNames(accounts);
 
-const displayMovements = function (movementsArr) {
+const displayMovements = function (movementsArr, sort = false) {
   containerMovements.innerHTML = ``;
 
-  movementsArr.forEach(function (mov, i) {
+  const newMovementsArr = sort
+    ? movementsArr.slice().sort((a, b) => a - b)
+    : movementsArr;
+
+  newMovementsArr.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
     const htmlEleCode = `<div class="movements__row">
     <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
@@ -204,6 +208,14 @@ btnLoan.addEventListener('click', function (e) {
     currAcc.movements.push(requetsedLoan);
     updateUI(currAcc);
   }
+});
+
+//sorting movements feature
+let sorted=false;
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+  displayMovements(currAcc.movements, !sorted);
+  sorted=!sorted;
 });
 
 // const rupeeToUSD = 82.91;
