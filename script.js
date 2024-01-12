@@ -103,7 +103,7 @@ const calcDisplaySummary = function (account) {
     .reduce((accum, curr) => accum + curr, 0);
   const interest = account.movements
     .filter(mov => mov > 0)
-    .map(depoist => (depoist * account.interestRate) / 100)
+    .map(deposit => (deposit * account.interestRate) / 100)
     .reduce((accum, int) => accum + int, 0);
 
   labelSumIn.textContent = `Rs. ${income}`;
@@ -184,10 +184,25 @@ btnClose.addEventListener('click', function (e) {
       acc => acc.userName === currAcc.userName
     );
     console.log(removeIdx);
-    // accounts.splice(removeIdx, 1);
+    accounts.splice(removeIdx, 1);
     //log out user
     inputCloseUsername.value = inputClosePin.value = ``;
     logOutUser();
+  }
+});
+
+//request loan feature
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+  const requetsedLoan = Number(inputLoanAmount.value);
+  inputLoanAmount.value = ``;
+  if (
+    requetsedLoan > 0 &&
+    currAcc.movements.some(deposit => deposit >= 0.1 * requetsedLoan)
+  ) {
+    //approve loan and deposit money
+    currAcc.movements.push(requetsedLoan);
+    updateUI(currAcc);
   }
 });
 
