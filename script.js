@@ -85,7 +85,7 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-let currAcc;
+let currAcc, timer;
 
 const createUserNames = function (accounts) {
   accounts.forEach(function (acc) {
@@ -98,6 +98,29 @@ const createUserNames = function (accounts) {
 };
 
 createUserNames(accounts);
+
+const setLogOutTimer = function () {
+  let min = 10,
+    sec = 0;
+  const timer = setInterval(function () {
+    labelTimer.textContent = `${`${min}`.padStart(2, 0)}:${`${sec}`.padStart(
+      2,
+      0
+    )}`;
+    if (min === 0 && sec === 0) {
+      //log out the user
+      clearInterval(timer);
+      logOutUser();
+    }
+    if (sec == 0) {
+      min--;
+      sec = 60;
+    }
+    sec--;
+  }, 1000);
+
+  return timer;
+};
 
 function formatMovementDate(date, locale) {
   const calcDaysPassed = (date1, date2) =>
@@ -185,6 +208,8 @@ function updateUI(currAcc) {
   displayMovements(currAcc);
   calcBalance(currAcc);
   calcDisplaySummary(currAcc);
+  if (timer) clearInterval(timer);
+  timer = setLogOutTimer();
 }
 
 function logOutUser() {
@@ -192,13 +217,9 @@ function logOutUser() {
   labelWelcome.textContent = `Log in to get started`;
 }
 
-//fake login
-currAcc = account1;
-containerApp.style.opacity = 100;
-updateUI(currAcc);
-
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault(); //prevents form from submitting
+
   const userName = inputLoginUsername.value;
   currAcc = accounts.find(acc => acc.userName === userName);
   //compare entered pin with the correct pin
@@ -227,7 +248,6 @@ btnLogin.addEventListener('click', function (e) {
     labelDate.textContent = Intl.DateTimeFormat(currAcc.locale, options).format(
       now
     );
-
     updateUI(currAcc);
   } else {
     //login failed --wrong pin entered
@@ -294,11 +314,13 @@ btnLoan.addEventListener('click', function (e) {
     requetsedLoan > 0 &&
     currAcc.movements.some(deposit => deposit >= 0.1 * requetsedLoan)
   ) {
-    //approve loan and deposit money
-    currAcc.movements.push(requetsedLoan);
-    //update dates array
-    currAcc.movementsDates.push(new Date().toISOString());
-    updateUI(currAcc);
+    setTimeout(function () {
+      //approve loan and deposit money
+      currAcc.movements.push(requetsedLoan);
+      //update dates array
+      currAcc.movementsDates.push(new Date().toISOString());
+      updateUI(currAcc);
+    }, 3000);
   }
 });
 
