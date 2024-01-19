@@ -16,9 +16,9 @@ const account1 = {
     '2020-01-28T09:15:04.904Z',
     '2020-04-01T10:17:24.185Z',
     '2020-05-08T14:11:59.604Z',
-    '2020-05-27T17:01:17.194Z',
-    '2020-07-11T23:36:17.929Z',
-    '2020-07-12T10:51:36.790Z',
+    '2024-01-15T17:01:17.194Z',
+    '2024-01-16T23:36:17.929Z',
+    '2024-01-18T10:51:36.790Z',
   ],
   currency: 'EUR',
   locale: 'pt-PT', // de-DE
@@ -99,6 +99,27 @@ const createUserNames = function (accounts) {
 
 createUserNames(accounts);
 
+function formatMovementDate(date, locale) {
+  const calcDaysPassed = (date1, date2) =>
+    Math.round(Math.abs(date1 - date2) / (1000 * 60 * 60 * 24));
+
+  const daysPassed = calcDaysPassed(new Date(), date);
+  if (daysPassed == 0) return `Today`;
+  if (daysPassed == 1) return `Yesterday`;
+  if (daysPassed <= 7) return `${daysPassed} days ago`;
+  // const day = `${date.getDate()}`.padStart(2, 0);
+  // const month = `${date.getMonth() + 1}`.padStart(2, 0);
+  // const year = date.getFullYear();
+  return Intl.DateTimeFormat(locale).format(date);
+}
+
+function formatMovements(num, locale, currency) {
+  return Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(Math.abs(num));
+}
+
 const displayMovements = function (currAcc, sort = false) {
   containerMovements.innerHTML = ``;
 
@@ -108,15 +129,13 @@ const displayMovements = function (currAcc, sort = false) {
 
   newMovementsArr.forEach(function (mov, i) {
     const date = new Date(currAcc.movementsDates[i]);
-    const day = `${date.getDate()}`.padStart(2, 0);
-    const month = `${date.getMonth() + 1}`.padStart(2, 0);
-    const year = date.getFullYear();
-    const displayDate = `${day}/${month}/${year}`;
+    const displayDate = formatMovementDate(date, currAcc.locale);
+    const formattedMov = formatMovements(mov, currAcc.locale, currAcc.currency);
     const type = mov > 0 ? 'deposit' : 'withdrawal';
     const htmlEleCode = `<div class="movements__row">
     <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
     <div class="movements__date">${displayDate}</div>
-    <div class="movements__value">Rs. ${Math.abs(mov).toFixed(2)}</div>
+    <div class="movements__value">${formattedMov}</div>
   </div>`;
 
     containerMovements.insertAdjacentHTML('afterbegin', htmlEleCode);
@@ -126,7 +145,11 @@ const displayMovements = function (currAcc, sort = false) {
 const calcBalance = function (acc) {
   const balance = acc.movements.reduce((accum, curr) => accum + curr, 0);
   acc.balance = balance;
-  labelBalance.textContent = `Rs. ${balance.toFixed(2)}`;
+  labelBalance.textContent = formatMovements(
+    balance,
+    currAcc.locale,
+    currAcc.currency
+  );
 };
 
 const calcDisplaySummary = function (account) {
@@ -141,13 +164,22 @@ const calcDisplaySummary = function (account) {
     .map(deposit => (deposit * account.interestRate) / 100)
     .reduce((accum, int) => accum + int, 0);
 
-  labelSumIn.textContent = `Rs. ${income.toFixed(2)}`;
-  labelSumOut.textContent = `Rs. ${Math.abs(outcome.toFixed(2))}`;
-  labelSumInterest.textContent = `Rs. ${interest.toFixed(2)}`;
+  labelSumIn.textContent = formatMovements(
+    income,
+    currAcc.locale,
+    currAcc.currency
+  );
+  labelSumOut.textContent = formatMovements(
+    outcome,
+    currAcc.locale,
+    currAcc.currency
+  );
+  labelSumInterest.textContent = formatMovements(
+    interest,
+    currAcc.locale,
+    currAcc.currency
+  );
 };
-
-const calcDaysPassed = (date1, date2) =>
-  Math.abs(date1 - date2) / (1000 * 60 * 60 * 24);
 
 function updateUI(currAcc) {
   displayMovements(currAcc);
@@ -181,13 +213,21 @@ btnLogin.addEventListener('click', function (e) {
     labelWelcome.textContent = `Welcome back, ${currAcc.owner.split(' ')[0]}`;
     //display app container
     containerApp.style.opacity = 1;
+
     const now = new Date();
-    const day = `${now.getDate()}`.padStart(2, 0);
-    const month = `${now.getMonth() + 1}`.padStart(2, 0);
-    const year = now.getFullYear();
-    const hr = `${now.getHours()}`.padStart(2, 0);
-    const min = `${now.getMinutes()}`.padStart(2, 0);
-    labelDate.textContent = `${day}/${month}/${year}, ${hr}:${min}`;
+    const options = {
+      // weekday: 'long',
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    };
+    // const locale = navigator.language;
+    labelDate.textContent = Intl.DateTimeFormat(currAcc.locale, options).format(
+      now
+    );
+
     updateUI(currAcc);
   } else {
     //login failed --wrong pin entered
